@@ -178,6 +178,6 @@ if __name__ == '__main__':
 
     test_df = test_df.reset_index()
     test_df = test_df.rename(columns={'index': 'Id', 'predict': 'Prediction'})
-    test_df[['Id', 'Prediction']].to_csv('/app/submission/submission_5.csv', sep=',', index=False, header=True)
+    test_df[['Id', 'Prediction']].to_csv('/app/submission/baseline.csv', sep=',', index=False, header=True)
 
     print(test_df[['Id', 'Prediction']].head())
