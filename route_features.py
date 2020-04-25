@@ -52,8 +52,6 @@ def get_new_features(train_df):
 
     train_route_features_df = pd.DataFrame(train_route_features)
 
-    train_route_features_df.parts_count = train_route_features_df.parts_count.astype(int)
-
     train_routes_df = pd.concat([train_df, train_route_features_df], axis=1)
 
     feature_names = ["start_offset", "finish_offset", "koeff_overroute", "parts_count",
