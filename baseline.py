@@ -82,7 +82,8 @@ def train(df):
     y = np.log(df['RTA'])
     categorical_features_indicies = [features_to_use.index(feat) for feat in categorical_features]
 
-    model = CatBoostRegressor(task_type="CPU", loss_function='MAPE', random_seed=0)
+    model = CatBoostRegressor(task_type="CPU", loss_function='MAPE', random_seed=0, l2_leaf_reg=9,
+                              learning_rate=0.15, depth=10)
     model.fit(
         X, y,
         cat_features=categorical_features_indicies,
