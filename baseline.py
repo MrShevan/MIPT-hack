@@ -172,9 +172,9 @@ if __name__ == '__main__':
     print('train_df shape: ', train_df.shape[0])
 
     # Cleaning stage
-    #train_df = filter_train_data(train_df)
-    #print('Train cleaned: ')
-    #print('train_df shape: ', train_df.shape[0])
+    train_df = filter_train_data(train_df)
+    print('Train cleaned: ')
+    print('train_df shape: ', train_df.shape[0])
 
     # Train stage
     pca = train_pca(train_df)
