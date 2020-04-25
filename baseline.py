@@ -145,23 +145,30 @@ if __name__ == '__main__':
         'dropoff_cluster'
     ]
 
+    # koeff = (train_df["RTA"].sum() + train_df["RTA"].shape[0]) / train_df["ETA"].sum()
+
     train_df = create_features(train_df, features_to_use, pca, kmeans, True)
+    # train_df["ETA"] = koeff * train_df["ETA"]
     print('Train DataFrame: \n', train_df.head())
 
     model = train(train_df)
 
     if not args.train_val_merge:
         val_df = create_features(val_df, features_to_use, pca, kmeans, True)
+        # val_df["ETA"] = koeff * val_df["ETA"]
+
         val_df['predict'] = np.exp(model.predict(val_df))
-        mape = mean_absolute_percentage_error(val_df['ETA'], val_df['predict'])
+        mape = mean_absolute_percentage_error(val_df['RTA'], val_df['predict'])
         print('Validation MAPE: ', mape)
 
     # Test stage
     test_df = create_features(test_df, features_to_use, pca, kmeans, False)
+    # test_df["ETA"] = koeff * test_df["ETA"]
+
     test_df['predict'] = np.exp(model.predict(test_df))
 
     test_df = test_df.reset_index()
     test_df = test_df.rename(columns={'index': 'Id', 'predict': 'Prediction'})
-    test_df[['Id', 'Prediction']].to_csv('/app/submission/baseline.csv', sep=',', index=False, header=True)
+    test_df[['Id', 'Prediction']].to_csv('submission/submission_time.csv', sep=',', index=False, header=True)
 
     print(test_df[['Id', 'Prediction']].head())
