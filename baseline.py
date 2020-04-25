@@ -43,7 +43,10 @@ def clusterize(df, n_clusters=100, batch_size=10000, sample_size=500000):
 def create_features(df, features_to_use, pca, kmeans, train=False):
     # time features
     df['OrderedDate_datetime'] = pd.to_datetime(df['OrderedDate'])
+    df['month'] = df['OrderedDate_datetime'].dt.month
     df['hour'] = df['OrderedDate_datetime'].dt.hour
+    df['week_of_year'] = df['OrderedDate_datetime'].dt.weekofyear
+    df['day_of_year'] = df['OrderedDate_datetime'].dt.dayofyear
     df['day_of_week'] = df['OrderedDate_datetime'].dt.dayofweek
 
     # geo features
@@ -166,9 +169,9 @@ if __name__ == '__main__':
     print('train_df shape: ', train_df.shape[0])
 
     # Cleaning stage
-    #train_df = filter_train_data(train_df)
-    #print('Train cleaned: ')
-    #print('train_df shape: ', train_df.shape[0])
+    train_df = filter_train_data(train_df)
+    print('Train cleaned: ')
+    print('train_df shape: ', train_df.shape[0])
 
     # Train stage
     pca = train_pca(train_df)
@@ -176,8 +179,10 @@ if __name__ == '__main__':
 
     features_to_use = [
         'main_id_locality',
-        'ETA',
+        'ETA', 'month',
         'hour',
+        'week_of_year',
+        'day_of_year',
         'day_of_week',
         'haversine',
         'pickup_pca0',
@@ -190,7 +195,10 @@ if __name__ == '__main__':
 
     categorical_features = [
         'main_id_locality',
+        'month',
         'hour',
+        'week_of_year',
+        'day_of_week',
         'pickup_cluster',
         'dropoff_cluster'
     ]
