@@ -7,17 +7,24 @@ from haversine import haversine
 
 def get_route_features(row):
     features = {}
-    parts = polyline.decode(row["route"])
 
-    parts_count = len(parts)
-    parts_distance_sum = 0
+    try:
+        parts = polyline.decode(row["route"])
 
-    for i in range(0, len(parts) - 1):
-        parts_distance_sum += haversine(parts[i], parts[i + 1])
+        parts_count = len(parts)
+        parts_distance_sum = 0
 
-    features["parts_count"] = parts_count
-    features["parts_distance_sum"] = parts_distance_sum
-    features["parts_distance_avg"] = parts_distance_sum / parts_count
+        for i in range(0, len(parts) - 1):
+            parts_distance_sum += haversine(parts[i], parts[i + 1])
+
+        features["parts_count"] = parts_count
+        features["parts_distance_sum"] = parts_distance_sum
+        features["parts_distance_avg"] = parts_distance_sum / parts_count
+
+    except:
+        features["parts_count"] = 0
+        features["parts_distance_sum"] = 0
+        features["parts_distance_avg"] = 0
 
     return features
 

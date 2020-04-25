@@ -14,8 +14,6 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import MiniBatchKMeans
 
 from catboost import CatBoostRegressor
-from catboost import cv
-from catboost import Pool
 
 np.random.seed(0)
 
@@ -30,7 +28,7 @@ def train_pca(df):
     return pca
 
 
-def clusterize(df, n_clusters=100, batch_size=10000, sample_size=500000):
+def clusterize(df, n_clusters=300, batch_size=10000, sample_size=800000):
     coords = np.vstack((df[['latitude', 'longitude']].values,
                         df[['del_latitude', 'del_longitude']].values))
 
@@ -45,6 +43,7 @@ def create_features(df, features_to_use, pca, kmeans, train=False):
     df['OrderedDate_datetime'] = pd.to_datetime(df['OrderedDate'])
     df['month'] = df['OrderedDate_datetime'].dt.month
     df['hour'] = df['OrderedDate_datetime'].dt.hour
+    df['minute'] = df['OrderedDate_datetime'].dt.minute
     df['day_of_week'] = df['OrderedDate_datetime'].dt.dayofweek
     df['week_of_year'] = df['OrderedDate_datetime'].dt.weekofyear
     df['day_of_year'] = df['OrderedDate_datetime'].dt.dayofyear
@@ -82,8 +81,9 @@ def train(df):
     y = np.log(df['RTA'])
     categorical_features_indicies = [features_to_use.index(feat) for feat in categorical_features]
 
-    model = CatBoostRegressor(task_type="CPU", loss_function='MAPE', random_seed=0, l2_leaf_reg=9,
-                              learning_rate=0.15, depth=10)
+    model = CatBoostRegressor(task_type="CPU", loss_function='MAPE', random_seed=0,
+                              l2_leaf_reg=9, learning_rate=0.15, depth=10
+                              )
     model.fit(
         X, y,
         cat_features=categorical_features_indicies,
@@ -121,6 +121,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     train_df = load_data('train', args.train_file)
+    # prev_train_df = load_data('prev_data/train', '/data/prev_data/train.csv')
+    # train_df = pd.concat([train_df, prev_train_df], sort=False)
     val_df = load_data('val', args.val_file)
     test_df = load_data('test', args.test_file)
 
@@ -137,6 +139,7 @@ if __name__ == '__main__':
         'main_id_locality',
         'ETA',
         'hour',
+        'minute',
         'month',
         'day_of_week',
         'week_of_year',
@@ -160,7 +163,9 @@ if __name__ == '__main__':
         'main_id_locality',
         'month',
         'hour',
-        'week_of_year', 'day_of_week',
+        'minute',
+        'week_of_year',
+        'day_of_week',
         'pickup_cluster',
         'dropoff_cluster'
     ]
