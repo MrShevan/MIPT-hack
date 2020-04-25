@@ -14,6 +14,6 @@ baseline.py
 ```
 
 Запуск
-```python
-python baseline.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv
+```
+python baseline.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv --train_val_merge 0
 ```
