@@ -82,7 +82,8 @@ def train(df):
     y = np.log(df['RTA'])
     categorical_features_indicies = [features_to_use.index(feat) for feat in categorical_features]
 
-    model = CatBoostRegressor(task_type="CPU", loss_function='MAPE', random_seed=0)
+    model = CatBoostRegressor(task_type="CPU", loss_function='MAPE', random_seed=0, l2_leaf_reg=9,
+                              learning_rate=0.15, depth=10)
     model.fit(
         X, y,
         cat_features=categorical_features_indicies,
@@ -106,6 +107,7 @@ def load_data(mode, path):
     train_df = pd.concat([train_df, train_df_ext], axis=1)
     print(f'{mode} loaded')
     return train_df
+
 
 
 if __name__ == '__main__':
@@ -169,6 +171,8 @@ if __name__ == '__main__':
     # train_df["ETA"] = koeff * train_df["ETA"]
     print('Train DataFrame: \n', train_df.head())
 
+    # train_df = train_df[:10000]
+
     if args.separate_cities:
         models = {}
         for main_id_locality in train_df["main_id_locality"].unique():
@@ -191,6 +195,16 @@ if __name__ == '__main__':
             mape = mean_absolute_percentage_error(val_df['RTA'], val_df['predict'])
             print('Validation MAPE: ', mape)
 
+        # Test stage
+        test_df = create_features(test_df, features_to_use, pca, kmeans, False)
+
+        predicts = []
+        for i in range(len(test_df)):
+            p = models[test_df.loc[i, :]["main_id_locality"]].predict(test_df[i:i+1])
+            predicts.append(p[0])
+
+        test_df["predict"] = np.exp(predicts)
+
     else:
 
         model = train(train_df)
@@ -209,8 +223,8 @@ if __name__ == '__main__':
 
         test_df['predict'] = np.exp(model.predict(test_df))
 
-        test_df = test_df.reset_index()
-        test_df = test_df.rename(columns={'index': 'Id', 'predict': 'Prediction'})
-        test_df[['Id', 'Prediction']].to_csv('submission/submission_time.csv', sep=',', index=False, header=True)
+    test_df = test_df.reset_index()
+    test_df = test_df.rename(columns={'index': 'Id', 'predict': 'Prediction'})
+    test_df[['Id', 'Prediction']].to_csv('submission/submission_cities.csv', sep=',', index=False, header=True)
 
-        print(test_df[['Id', 'Prediction']].head())
+    print(test_df[['Id', 'Prediction']].head())
