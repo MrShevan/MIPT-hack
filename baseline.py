@@ -103,6 +103,49 @@ def train(df):
     return model
 
 
+def filter_train_data(df):
+    city_info = {
+        "id2city": {
+            338: "Краснодар",
+            22394: "Тольятти",
+            22402: "Уфа",
+            22406: "Екатеринбург"
+        },
+        "city_center": {
+            "Краснодар": (45.035470, 38.975313),
+            "Тольятти": (53.545342, 49.369406),
+            "Уфа": (54.735147, 55.958727),
+            "Екатеринбург": (56.838011, 60.597465)},
+        "city_bounds": {
+            # [(long_bounds, lat_bounds)]
+            "Краснодар": [(38.9, 39.14), (44.95, 45.15)],
+            "Тольятти": [(49.15, 49.5), (53.49, 53.6)],
+            "Уфа": [(55.9, 56.15), (54.68, 54.85)],
+            "Екатеринбург": [(60.5, 60.7), (56.75, 56.9)]
+        }
+    }
+
+    res_df = None
+    for curr_id in sorted(city_info["id2city"].keys()):
+        curr_df = df[df['main_id_locality'] == curr_id]
+        city_name = city_info["id2city"][curr_id]
+
+        ((long_min, long_max), (lat_min, lat_max)) = city_info["city_bounds"][city_name]
+
+        for feat in ['longitude', 'del_longitude']:
+            curr_df = curr_df[(curr_df[feat] > long_min) & (curr_df[feat] < long_max)]
+
+        for feat in ['latitude', 'del_latitude']:
+            curr_df = curr_df[(curr_df[feat] > lat_min) & (curr_df[feat] < lat_max)]
+
+        if res_df is None:
+            res_df = curr_df
+        else:
+            res_df = res_df.append(curr_df)
+
+    return res_df
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_file', type=str, required=True)
@@ -112,7 +155,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     train_df = pd.read_csv(args.train_file)
+    print(train_df.columns)
     print('Train loaded')
+
     val_df = pd.read_csv(args.val_file)
     print('Validation loaded')
     test_df = pd.read_csv(args.test_file)
@@ -122,6 +167,11 @@ if __name__ == '__main__':
         train_df = pd.concat([train_df, val_df], sort=False)
 
     print('train_df shape: ', train_df.shape[0])
+
+    # Cleaning stage
+    #train_df = filter_train_data(train_df)
+    #print('Train cleaned: ')
+    #print('train_df shape: ', train_df.shape[0])
 
     # Train stage
     pca = train_pca(train_df)
@@ -161,7 +211,7 @@ if __name__ == '__main__':
     if not args.train_val_merge:
         val_df = create_features(val_df, features_to_use, pca, kmeans, True)
         val_df['predict'] = np.exp(model.predict(val_df))
-        mape = mean_absolute_percentage_error(val_df['ETA'], val_df['predict'])
+        mape = mean_absolute_percentage_error(val_df['RTA'], val_df['predict'])
         print('Validation MAPE: ', mape)
 
     # Test stage
@@ -170,6 +220,6 @@ if __name__ == '__main__':
 
     test_df = test_df.reset_index()
     test_df = test_df.rename(columns={'index': 'Id', 'predict': 'Prediction'})
-    test_df[['Id', 'Prediction']].to_csv('/app/submission/baseline.csv', sep=',', index=False, header=True)
+    test_df[['Id', 'Prediction']].to_csv('submission/vetal.csv', sep=',', index=False, header=True)
 
     print(test_df[['Id', 'Prediction']].head())
