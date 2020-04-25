@@ -103,10 +103,11 @@ def load_data(mode, path):
     path: path to data file
     '''
     train_df = pd.read_csv(path)
-    train_df_ext = pd.read_csv(f'/data/{mode}_extended.csv')
+    train_df_ext = pd.read_csv(f'../data/{mode}_extended.csv')
     train_df = pd.concat([train_df, train_df_ext], axis=1)
     print(f'{mode} loaded')
     return train_df
+
 
 
 if __name__ == '__main__':
@@ -114,6 +115,8 @@ if __name__ == '__main__':
     parser.add_argument('--train_file', type=str, required=True)
     parser.add_argument('--val_file', type=str, required=True)
     parser.add_argument('--test_file', type=str, required=True)
+    parser.add_argument('--separate_cities', type=int, default=0)
+
     parser.add_argument('--train_val_merge', type=int, default=1)
     args = parser.parse_args()
 
@@ -162,23 +165,66 @@ if __name__ == '__main__':
         'dropoff_cluster'
     ]
 
+    # koeff = (train_df["RTA"].sum() + train_df["RTA"].shape[0]) / train_df["ETA"].sum()
+
     train_df = create_features(train_df, features_to_use, pca, kmeans, True)
+    # train_df["ETA"] = koeff * train_df["ETA"]
     print('Train DataFrame: \n', train_df.head())
 
-    model = train(train_df)
+    # train_df = train_df[:10000]
 
-    if not args.train_val_merge:
-        val_df = create_features(val_df, features_to_use, pca, kmeans, True)
-        val_df['predict'] = np.exp(model.predict(val_df))
-        mape = mean_absolute_percentage_error(val_df['RTA'], val_df['predict'])
-        print('Validation MAPE: ', mape)
+    if args.separate_cities:
+        models = {}
+        for main_id_locality in train_df["main_id_locality"].unique():
+            city_df = train_df[train_df["main_id_locality"] == main_id_locality]
+            model = train(city_df)
+            models[main_id_locality] = model
 
-    # Test stage
-    test_df = create_features(test_df, features_to_use, pca, kmeans, False)
-    test_df['predict'] = np.exp(model.predict(test_df))
+        if not args.train_val_merge:
+            val_df = create_features(val_df, features_to_use, pca, kmeans, True)
+            # val_df["ETA"] = koeff * val_df["ETA"]
+
+            predicts = []
+            for main_id_locality in val_df["main_id_locality"].unique():
+                city_df = val_df[val_df["main_id_locality"] == main_id_locality]
+                city_df['predict'] = np.exp(models[main_id_locality].predict(city_df))
+                predicts.append(city_df)
+
+            val_df = pd.concat(predicts, axis=0)
+
+            mape = mean_absolute_percentage_error(val_df['RTA'], val_df['predict'])
+            print('Validation MAPE: ', mape)
+
+        # Test stage
+        test_df = create_features(test_df, features_to_use, pca, kmeans, False)
+
+        predicts = []
+        for i in range(len(test_df)):
+            p = models[test_df.loc[i, :]["main_id_locality"]].predict(test_df[i:i+1])
+            predicts.append(p[0])
+
+        test_df["predict"] = np.exp(predicts)
+
+    else:
+
+        model = train(train_df)
+
+        if not args.train_val_merge:
+            val_df = create_features(val_df, features_to_use, pca, kmeans, True)
+            # val_df["ETA"] = koeff * val_df["ETA"]
+
+            val_df['predict'] = np.exp(model.predict(val_df))
+            mape = mean_absolute_percentage_error(val_df['RTA'], val_df['predict'])
+            print('Validation MAPE: ', mape)
+
+        # Test stage
+        test_df = create_features(test_df, features_to_use, pca, kmeans, False)
+        # test_df["ETA"] = koeff * test_df["ETA"]
+
+        test_df['predict'] = np.exp(model.predict(test_df))
 
     test_df = test_df.reset_index()
     test_df = test_df.rename(columns={'index': 'Id', 'predict': 'Prediction'})
-    test_df[['Id', 'Prediction']].to_csv('/app/submission/baseline.csv', sep=',', index=False, header=True)
+    test_df[['Id', 'Prediction']].to_csv('submission/submission_cities.csv', sep=',', index=False, header=True)
 
     print(test_df[['Id', 'Prediction']].head())
