@@ -20,12 +20,12 @@ baseline.py
 python route_features.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv
 ```
 
-Обучаем и проверяем на валидации
+Обучаем на трейне, проверяем на валидации и предиктим на тесте
 ```
 python baseline.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv --train_val_merge 0
 ```
 
-Обучаем на трейне и валидации 
+Обучаем на трейне и валидации, предиктим на тесте
 ```
 python baseline.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv --train_val_merge 1
 ```
