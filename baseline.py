@@ -48,16 +48,12 @@ def create_features(df, features_to_use, pca, kmeans, train=False):
     df['week_of_year'] = df['OrderedDate_datetime'].dt.weekofyear
     df['day_of_year'] = df['OrderedDate_datetime'].dt.dayofyear
     df['day_of_week'] = df['OrderedDate_datetime'].dt.dayofweek
+    df['week_of_year'] = df['OrderedDate_datetime'].dt.weekofyear
+    df['day_of_year'] = df['OrderedDate_datetime'].dt.dayofyear
 
     # geo features
     df['haversine'] = df.apply(lambda row: haversine((row['latitude'], row['longitude']),
                                                      (row['del_latitude'], row['del_longitude'])), axis=1)
-
-    # maneuvers
-    #     df['n_turns'] = df['step_maneuvers'].apply(lambda s: Counter(s.split('|'))['turn'])
-
-    #     df['n_left_directions'] = df['step_direction'].apply(lambda s: Counter(s.split('|'))['left'])
-    #     df['n_right_directions'] = df['step_direction'].apply(lambda s: Counter(s.split('|'))['right'])
 
     # PCA features
     pickup_pca_features = pca.transform(df[['latitude', 'longitude']])
@@ -101,6 +97,18 @@ def train(df):
     print('Important features\n', importances)
 
     return model
+
+def load_data(mode, path):
+    """
+    mode: {'train', 'val', 'test'}
+    path: path to data file
+    """
+
+    train_df = pd.read_csv(path)
+    train_df_ext = pd.read_csv(f'data/{mode}_extended.csv')
+    train_df = pd.concat([train_df, train_df_ext], axis=1)
+    print(f'{mode} loaded')
+    return train_df
 
 
 def filter_train_data(df):
@@ -154,14 +162,9 @@ if __name__ == '__main__':
     parser.add_argument('--train_val_merge', type=int, default=1)
     args = parser.parse_args()
 
-    train_df = pd.read_csv(args.train_file)
-    print(train_df.columns)
-    print('Train loaded')
-
-    val_df = pd.read_csv(args.val_file)
-    print('Validation loaded')
-    test_df = pd.read_csv(args.test_file)
-    print('Test loaded')
+    train_df = load_data('train', args.train_file)
+    val_df = load_data('val', args.val_file)
+    test_df = load_data('test', args.test_file)
 
     if args.train_val_merge:
         train_df = pd.concat([train_df, val_df], sort=False)
@@ -169,9 +172,9 @@ if __name__ == '__main__':
     print('train_df shape: ', train_df.shape[0])
 
     # Cleaning stage
-    train_df = filter_train_data(train_df)
-    print('Train cleaned: ')
-    print('train_df shape: ', train_df.shape[0])
+    #train_df = filter_train_data(train_df)
+    #print('Train cleaned: ')
+    #print('train_df shape: ', train_df.shape[0])
 
     # Train stage
     pca = train_pca(train_df)
@@ -181,24 +184,30 @@ if __name__ == '__main__':
         'main_id_locality',
         'ETA', 'month',
         'hour',
+        'month',
+        'day_of_week',
         'week_of_year',
         'day_of_year',
-        'day_of_week',
         'haversine',
         'pickup_pca0',
         'pickup_pca1',
         'dropoff_pca0',
         'dropoff_pca1',
         'pickup_cluster',
-        'dropoff_cluster'
+        'dropoff_cluster',
+        'start_offset',
+        'finish_offset',
+        'koeff_overroute',
+        'parts_count',
+        'parts_distance_sum',
+        'parts_distance_avg'
     ]
 
     categorical_features = [
         'main_id_locality',
         'month',
         'hour',
-        'week_of_year',
-        'day_of_week',
+        'week_of_year', 'day_of_week',
         'pickup_cluster',
         'dropoff_cluster'
     ]
