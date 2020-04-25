@@ -43,18 +43,15 @@ def clusterize(df, n_clusters=100, batch_size=10000, sample_size=500000):
 def create_features(df, features_to_use, pca, kmeans, train=False):
     # time features
     df['OrderedDate_datetime'] = pd.to_datetime(df['OrderedDate'])
+    df['month'] = df['OrderedDate_datetime'].dt.month
     df['hour'] = df['OrderedDate_datetime'].dt.hour
     df['day_of_week'] = df['OrderedDate_datetime'].dt.dayofweek
+    df['week_of_year'] = df['OrderedDate_datetime'].dt.weekofyear
+    df['day_of_year'] = df['OrderedDate_datetime'].dt.dayofyear
 
     # geo features
     df['haversine'] = df.apply(lambda row: haversine((row['latitude'], row['longitude']),
                                                      (row['del_latitude'], row['del_longitude'])), axis=1)
-
-    # maneuvers
-    #     df['n_turns'] = df['step_maneuvers'].apply(lambda s: Counter(s.split('|'))['turn'])
-
-    #     df['n_left_directions'] = df['step_direction'].apply(lambda s: Counter(s.split('|'))['left'])
-    #     df['n_right_directions'] = df['step_direction'].apply(lambda s: Counter(s.split('|'))['right'])
 
     # PCA features
     pickup_pca_features = pca.transform(df[['latitude', 'longitude']])
@@ -99,6 +96,17 @@ def train(df):
 
     return model
 
+def load_data(mode, path):
+    '''
+    mode: {'train', 'val', 'test'}
+    path: path to data file
+    '''
+    train_df = pd.read_csv(path)
+    train_df_ext = pd.read_csv(f'/data/{mode}_extended.csv')
+    train_df = pd.concat([train_df, train_df_ext], axis=1)
+    print(f'{mode} loaded')
+    return train_df
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -108,12 +116,9 @@ if __name__ == '__main__':
     parser.add_argument('--train_val_merge', type=int, default=1)
     args = parser.parse_args()
 
-    train_df = pd.read_csv(args.train_file)
-    print('Train loaded')
-    val_df = pd.read_csv(args.val_file)
-    print('Validation loaded')
-    test_df = pd.read_csv(args.test_file)
-    print('Test loaded')
+    train_df = load_data('train', args.train_file)
+    val_df = load_data('val', args.val_file)
+    test_df = load_data('test', args.test_file)
 
     if args.train_val_merge:
         train_df = pd.concat([train_df, val_df], sort=False)
@@ -128,19 +133,30 @@ if __name__ == '__main__':
         'main_id_locality',
         'ETA',
         'hour',
+        'month',
         'day_of_week',
+        'week_of_year',
+        'day_of_year',
         'haversine',
         'pickup_pca0',
         'pickup_pca1',
         'dropoff_pca0',
         'dropoff_pca1',
         'pickup_cluster',
-        'dropoff_cluster'
+        'dropoff_cluster',
+        'start_offset',
+        'finish_offset',
+        'koeff_overroute',
+        'parts_count',
+        'parts_distance_sum',
+        'parts_distance_avg'
     ]
 
     categorical_features = [
         'main_id_locality',
+        'month',
         'hour',
+        'week_of_year', 'day_of_week',
         'pickup_cluster',
         'dropoff_cluster'
     ]
@@ -153,7 +169,7 @@ if __name__ == '__main__':
     if not args.train_val_merge:
         val_df = create_features(val_df, features_to_use, pca, kmeans, True)
         val_df['predict'] = np.exp(model.predict(val_df))
-        mape = mean_absolute_percentage_error(val_df['ETA'], val_df['predict'])
+        mape = mean_absolute_percentage_error(val_df['RTA'], val_df['predict'])
         print('Validation MAPE: ', mape)
 
     # Test stage
@@ -162,6 +178,6 @@ if __name__ == '__main__':
 
     test_df = test_df.reset_index()
     test_df = test_df.rename(columns={'index': 'Id', 'predict': 'Prediction'})
-    test_df[['Id', 'Prediction']].to_csv('/app/submission/baseline.csv', sep=',', index=False, header=True)
+    test_df[['Id', 'Prediction']].to_csv('/app/submission/submission_5.csv', sep=',', index=False, header=True)
 
     print(test_df[['Id', 'Prediction']].head())
