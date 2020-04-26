@@ -3,7 +3,7 @@ import pandas as pd
 import polyline
 from tqdm import tqdm
 from haversine import haversine
-
+import os
 
 def get_route_features(row):
     features = {}
@@ -57,6 +57,7 @@ def get_new_features(train_df):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--data_path', type=str, required=True)
     parser.add_argument('--train_file', type=str, required=True)
     parser.add_argument('--val_file', type=str, required=True)
     parser.add_argument('--test_file', type=str, required=True)
@@ -66,18 +67,18 @@ if __name__ == '__main__':
     print('Train loaded')
     print('Train df get features ...')
     train_df_extended = get_new_features(train_df)
-    train_df_extended.to_csv("/data/train_extended.csv", index=False)
+    train_df_extended.to_csv(os.path.join(args.data_path, "train_extended.csv"), index=False)
     print()
 
     val_df = pd.read_csv(args.val_file)
     print('Validation loaded')
     print('Validation df get features ...')
     valid_df_extended = get_new_features(val_df)
-    valid_df_extended.to_csv("/data/val_extended.csv", index=False)
+    valid_df_extended.to_csv(os.path.join(args.data_path, "val_extended.csv"), index=False)
     print()
 
     test_df = pd.read_csv(args.test_file)
     print('Test loaded')
     print('Test df get features ...')
     test_df_extended = get_new_features(test_df)
-    test_df_extended.to_csv("/data/test_extended.csv", index=False)
+    test_df_extended.to_csv(os.path.join(args.data_path, "test_extended.csv"), index=False)
