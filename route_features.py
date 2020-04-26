@@ -68,6 +68,8 @@ if __name__ == '__main__':
     parser.add_argument('--train_file', type=str, required=True)
     parser.add_argument('--val_file', type=str, required=True)
     parser.add_argument('--test_file', type=str, required=True)
+    parser.add_argument('--test_add_file', type=str, required=True)
+
     args = parser.parse_args()
 
     train_df = pd.read_csv(args.train_file)
@@ -85,6 +87,9 @@ if __name__ == '__main__':
     print()
 
     test_df = pd.read_csv(args.test_file)
+    test_additional_df = pd.read_csv(args.test_add_file)
+    test_df["route"] = test_additional_df["route"]
+
     print('Test loaded')
     print('Test df get features ...')
     test_df_extended = get_new_features(test_df)

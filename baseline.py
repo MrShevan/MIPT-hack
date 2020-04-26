@@ -99,7 +99,7 @@ def train(df):
 
 def load_data(mode, path):
     '''
-    mode: {'train', 'val', 'test'}
+    mode: {'train', 'valid', 'test'}
     path: path to data file
     '''
     train_df = pd.read_csv(path)
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     train_df = load_data('train', args.train_file)
     # prev_train_df = load_data('prev_data/train', '/data/prev_data/train.csv')
     # train_df = pd.concat([train_df, prev_train_df], sort=False)
-    val_df = load_data('val', args.val_file)
+    val_df = load_data('valid', args.val_file)
     test_df = load_data('test', args.test_file)
 
     if args.train_val_merge:
