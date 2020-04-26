@@ -1,0 +1,11 @@
+version: '2.3'
+services:
+    mipt-hack:
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+        image: mipt-hack
+        container_name: mipt-hack
+        volumes:
+            - path/to/repository:/app
+            - path/to/data:/data
