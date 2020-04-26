@@ -17,7 +17,7 @@ baseline.py
 
 Генерируем гео фичи 
 ```
-python route_features.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv
+python route_features.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv --test_add_file /data/test_additional.csv
 ```
 
 Обучаем на трейне, проверяем на валидации и предиктим на тесте
