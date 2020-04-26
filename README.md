@@ -1,6 +1,26 @@
 # MIPT hackathon
 
+### Docker:
+
+Чтобы запустить контейнер необходимо указать в `docker-compose` пути на хосте, где лежит репозиторий (в папку app) и данные (в папку data). И выполнить следующую команду:
+
+```
+docker-compose up --build
+```
+
+### Структура кода:
+
 Для обучения и теста выполни скрипт:
+
+```angular2
+route_features.py
+
+Аргументы:
+  train_file [str]: путь до обучающего файла
+  test_file [str]: путь до тестового файла
+  val_file [str]: путь до валидационного файла
+  test_add_file [str]: путь до тестового файла с добавленным route
+```
 
 ```angular2
 baseline.py
@@ -17,7 +37,7 @@ baseline.py
 
 Генерируем гео фичи 
 ```
-python route_features.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv
+python route_features.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv --test_add_file /data/test_additional.csv
 ```
 
 Обучаем на трейне, проверяем на валидации и предиктим на тесте
@@ -33,5 +53,5 @@ python baseline.py --train_file /data/train.csv --val_file /data/validation.csv 
 ### Актуальный скор на валидации
 
 ```
-Validation MAPE:  0.14015
+Validation MAPE:  0.1401547477305674
 ```
