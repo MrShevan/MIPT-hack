@@ -22,9 +22,9 @@ def get_route_features(row):
         features["parts_distance_avg"] = parts_distance_sum / parts_count
 
     except:
-        features["parts_count"] = 0
-        features["parts_distance_sum"] = 0
-        features["parts_distance_avg"] = 0
+        features["parts_count"] = None
+        features["parts_distance_sum"] = None
+        features["parts_distance_avg"] = None
 
     return features
 
@@ -52,10 +52,21 @@ def get_new_features(train_df):
 
     train_route_features_df = pd.DataFrame(train_route_features)
 
+    values = dict(train_route_features_df.mean())
+    train_route_features_df = train_route_features_df.fillna(value=values)
+
+    train_route_features_df.parts_count = train_route_features_df.parts_count.astype(int)
+    train_route_features_df.parts_distance_sum = train_route_features_df.parts_distance_sum.astype(float)
+    train_route_features_df.parts_distance_avg = train_route_features_df.parts_distance_avg.astype(float)
+
     train_routes_df = pd.concat([train_df, train_route_features_df], axis=1)
 
+    train_routes_df["koeff_overroute_dist"] = train_routes_df["parts_distance_sum"] / train_routes_df["haversine"]
+    train_routes_df["koeff_overroute_rel"] = train_routes_df["EDA"] / train_routes_df["parts_distance_sum"]
+
     feature_names = ["start_offset", "finish_offset", "koeff_overroute", "parts_count",
-                     "parts_distance_sum", "parts_distance_avg"]
+                     "parts_distance_sum", "parts_distance_avg", "koeff_overroute_dist",
+                     "koeff_overroute_rel"]
 
     new_features_df = train_routes_df[feature_names]
 
@@ -67,6 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_file', type=str, required=True)
     parser.add_argument('--val_file', type=str, required=True)
     parser.add_argument('--test_file', type=str, required=True)
+    parser.add_argument('--test_add_file', type=str, required=True)
     args = parser.parse_args()
 
     train_df = pd.read_csv(args.train_file)
@@ -84,6 +96,9 @@ if __name__ == '__main__':
     print()
 
     test_df = pd.read_csv(args.test_file)
+    test_additional_df = pd.read_csv(args.test_add_file)
+    test_df["route"] = test_additional_df["route"]
+
     print('Test loaded')
     print('Test df get features ...')
     test_df_extended = get_new_features(test_df)

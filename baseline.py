@@ -43,7 +43,7 @@ def create_features(df, features_to_use, pca, kmeans, train=False):
     df['OrderedDate_datetime'] = pd.to_datetime(df['OrderedDate'])
     df['month'] = df['OrderedDate_datetime'].dt.month
     df['hour'] = df['OrderedDate_datetime'].dt.hour
-    df['minute'] = df['OrderedDate_datetime'].dt.minute
+    # df['minute'] = df['OrderedDate_datetime'].dt.minute
     df['day_of_week'] = df['OrderedDate_datetime'].dt.dayofweek
     df['week_of_year'] = df['OrderedDate_datetime'].dt.weekofyear
     df['day_of_year'] = df['OrderedDate_datetime'].dt.dayofyear
@@ -121,8 +121,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     train_df = load_data('train', args.train_file)
-    # prev_train_df = load_data('prev_data/train', '/data/prev_data/train.csv')
-    # train_df = pd.concat([train_df, prev_train_df], sort=False)
     val_df = load_data('val', args.val_file)
     test_df = load_data('test', args.test_file)
 
@@ -138,8 +136,9 @@ if __name__ == '__main__':
     features_to_use = [
         'main_id_locality',
         'ETA',
+        # 'EDA',
         'hour',
-        'minute',
+        # 'minute',
         'month',
         'day_of_week',
         'week_of_year',
@@ -154,6 +153,8 @@ if __name__ == '__main__':
         'start_offset',
         'finish_offset',
         'koeff_overroute',
+        # 'koeff_overroute_dist',
+        # 'koeff_overroute_rel',
         'parts_count',
         'parts_distance_sum',
         'parts_distance_avg'
@@ -163,7 +164,7 @@ if __name__ == '__main__':
         'main_id_locality',
         'month',
         'hour',
-        'minute',
+        # 'minute',
         'week_of_year',
         'day_of_week',
         'pickup_cluster',
