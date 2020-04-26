@@ -13,7 +13,7 @@ libcudnn7-dev=$CUDNN_VERSION-1+cuda10.2 \
 
 COPY ./requirements.txt $PROJECT_ROOT/
 
-RUN pip3 install --upgrade setuptools && \
+RUN pip3 install --no-cache-dir setuptools==41.0.0 && \
     pip3 install --no-cache-dir -r requirements.txt
 
 CMD ["/bin/bash"]
