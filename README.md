@@ -29,3 +29,9 @@ python baseline.py --train_file /data/train.csv --val_file /data/validation.csv 
 ```
 python baseline.py --train_file /data/train.csv --val_file /data/validation.csv --test_file /data/test.csv --train_val_merge 1
 ```
+
+### Актуальный скор на валидации
+
+```
+Validation MAPE:  0.14015
+```

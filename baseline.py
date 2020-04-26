@@ -133,6 +133,7 @@ if __name__ == '__main__':
     features_to_use = [
         'main_id_locality',
         'ETA',
+        # 'EDA',
         'hour',
         # 'minute',
         'month',
@@ -149,6 +150,8 @@ if __name__ == '__main__':
         'start_offset',
         'finish_offset',
         'koeff_overroute',
+        # 'koeff_overroute_dist',
+        # 'koeff_overroute_rel',
         'parts_count',
         'parts_distance_sum',
         'parts_distance_avg'
