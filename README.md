@@ -1,5 +1,9 @@
 # MIPT hackathon
 
+Решение, занявшее первое место в Хакатоне от Ситимобила в задаче Коррекции расчетного времени поездки.
+
+https://vc.ru/citymobil/130020-vy-pribyli-kak-uchastniki-onlayn-hakatona-razrabatyvali-dlya-sitimobil-modeli-prognoza-ozhidaemogo-vremeni-poezdki
+
 ### Docker:
 
 Чтобы запустить контейнер необходимо указать в `docker-compose` пути на хосте, где лежит репозиторий (в папку app) и данные (в папку data). И выполнить следующую команду:
